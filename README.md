@@ -1,6 +1,7 @@
 # Berlin-water-wells-map
 A project showcasing [Berlin street water pumps](https://www.berlin.de/umwelt/themen/wasser/artikel.155619.php) and the time required to reach the nearest one.
-[See the interactive map on Github Pages](https://ossssip.github.io/Berlin-water-wells-map)
+
+[See the interactive map on Github Pages](https://ossssip.github.io/Berlin-water-wells-map/).
 
 ## Data Sources
 - [OpenStreetMap](https://www.openstreetmap.org/copyright), [ODbL](https://opendatacommons.org/licenses/odbl/) - Locations of water wells, calculation of isochrones, and Nominatim search for the map hosted on GitHub Pages.
