@@ -1,0 +1,26 @@
+version: '3.0'
+services:
+  ors-app:
+    container_name: ors-app3
+    ports:
+      - "8083:8080"
+      - "9001:9001"
+    image: openrouteservice/openrouteservice:latest
+    user: "${UID:-0}:${GID:-0}"
+#    build:
+#      context: ./
+#      args:
+#        OSM_FILE: ./data/brandenburg-latest.osm.pbf
+    volumes:
+      - ./docker/graphs:/home/ors/ors-core/data/graphs
+      - ./docker/elevation_cache:/home/ors/ors-core/data/elevation_cache
+      - ./docker/logs/ors:/home/ors/logs
+      - ./docker/logs/tomcat:/home/ors/tomcat/logs
+      - ./docker/conf:/home/ors/ors-conf
+      - ./docker/data:/home/ors/ors-core/data
+      - ./data/brandenburg-latest.osm.pbf:/home/ors/ors-core/data/osm_file.pbf
+    environment:
+      - ORS_CONFIG=/home/ors/ors-conf/ors-config.json
+      - BUILD_GRAPHS=False  # Forces the container to rebuild the graphs, e.g. when PBF is changed
+      - "JAVA_OPTS=-Djava.awt.headless=true -server -XX:TargetSurvivorRatio=75 -XX:SurvivorRatio=64 -XX:MaxTenuringThreshold=3 -XX:+UseG1GC -XX:+ScavengeBeforeFullGC -XX:ParallelGCThreads=4 -Xms2g -Xmx4g"
+      - "CATALINA_OPTS=-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=9001 -Dcom.sun.management.jmxremote.rmi.port=9001 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=localhost"

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Berlin water wells</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-geosearch@3.0.0/dist/geosearch.css"/>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.vectorgrid@1.3.0/dist/Leaflet.VectorGrid.bundled.js"></script>
+    <script src="https://unpkg.com/leaflet-geosearch@3.6.0/dist/geosearch.umd.js"></script>
+    <style type='text/css'>
+        #maptitle {
+            position: absolute;
+            z-index: 9999;
+            background-color: rgba(255, 255, 255, .8);
+            border-radius: 5px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            margin-left: 20px;
+            font-size: 14px;
+            right: 10px;
+            top: 20px;
+            max-width: 480px;
+            height: 50%;
+            display: none;
+        }
+        div.overflow {
+            overflow-y: auto;
+            height: 100%;
+            font-size: 14px;
+            font-family: Arial, sans-serif;
+        }
+        button.toggle-title {
+            position: absolute;
+            z-index: 99999;
+            background-color: rgba(255, 255, 255, .8);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+            border: 0;
+            padding: 5px;
+            font-size: 12px;
+            right: 10px;
+            top: 20px;
+        }
+        @media only screen and (min-width: 1920px) {
+            button.toggle-title,
+            button.toggle-legend {
+                padding: 10px;
+                font-size: 18px;
+            }
+        }
+    </style>
+    <script>
+        function toggleTitle() {
+            var x = document.getElementById("maptitle");
+            if (x.style.display === "block") {
+                x.style.display = "none";
+            } else {
+                x.style.display = "block";
+            }
+        };
+    </script>
+</head>
+<body style='margin:0'>
+    <button onclick="toggleTitle()" class="toggle-title">Details</button>
+    <div id="maptitle">
+        <div class="overflow">
+            <h1>Berlin water wells</h1>
+            This map displays the locations of approximately 2,000 water pumps, part of the <a href="https://www.berlin.de/umwelt/themen/wasser/artikel.155619.php" target="_blank">Berlin Street Water Pump network</a> and a few additional drinking water wells marked on OpenStreetMap. These sources are not connected to the central water supply system and serve as an emergency water provision.
+            Isochrones have been mapped for each water source to visualize the areas reachable within a given walking time.
+            <h2>Population Analysis</h2>
+            To assess the proximity of Berlin's population to these water sources, two datasets were utilized: the Berliner Einwohnerdichte and GHS_POP.
+            <a href="img/Pop_vs_proximity.png" target="_blank">
+                <img src="img/Pop_vs_proximity.png" alt="Berlin Population Proximity to Water Pumps" width="100%" />
+            </a>
+            As illustrated in the figure above, over 70% of Berlin's inhabitants live within a 5-minute walking distance from an emergency water source, and about 90% are within a 10-minute range. The GHS_POP model appears to underestimate the peak population density compared to the Einwohnerdichte dataset, yet this does not significantly impact the distribution of proximity.
+            <h2>Water Pump Proximity by District</h2>
+            <a href="img/Pop_vs_proximity.png" target="_blank">
+                <img src="img/Pop_stacked.png" alt="Berlin Population Proximity to Water Pumps" width="100%" />
+            </a>
+            Analyzing the data per district reveals that central areas of Berlin, such as Mitte, Tempelhof-Schöneberg, and Friedrichshain-Kreuzberg, have more than 90% of their population within a 5-minute distance from an emergency water source. Meanwhile, the larger and more remote districts like Spandau, Treptow-Köpenick, and Pankow show slightly less accessibility but still maintain commendable proximity values.<br><br>
+            More info on the project: <a href="https://github.com/Ossssip/Berlin-water-wells-map" target="_blank">GitHub Repository</a>
+            <h2>Data Sources:</h2>
+            [1] OpenStreetMap <a href="https://www.openstreetmap.org/copyright" target="_blank">Copyright Information</a><br>
+            [2] Geoportal Berlin/Einwohnerdichte 2022 (Umweltatlas) <a href="https://daten.berlin.de/datensaetze/einwohnerdichte-2022-umweltatlas-wms" target="_blank">Einwohnerdichte 2022 Umweltatlas WMS</a>, <a href="https://creativecommons.org/licenses/by-sa/3.0/de/deed.de" target="_blank">CC BY 3.0 DE Deed</a><br>
+            [3] Schiavina M., Freire S., Carioli A., MacManus K. (2023): GHS-POP R2023A - GHS population grid multitemporal (1975-2030), European Commission, Joint Research Centre (JRC), PID: <a href="http://data.europa.eu/89h/2ff68a52-5b5b-4a22-8f40-c41da8332cfe" target="_blank">http://data.europa.eu/89h/2ff68a52-5b5b-4a22-8f40-c41da8332cfe</a>, doi:10.2905/2FF68A52-5B5B-4A22-8F40-C41DA8332CFE
+        </div>
+    </div>
+    <div id="map" style="width: 100vw; height: 100vh; background: #fdfdfd"></div>
+    <script>
+        var map = L.map('map', {
+            center: [52.5200, 13.4050],
+            minZoom: 11,
+            maxZoom: 18,
+            zoomControl: true,
+            zoom: 12,
+        });
+        var mapBaseLayer = L.tileLayer('https://sgx.geodatenzentrum.de/wmts_basemapde/tile/1.0.0/de_basemapde_web_raster_grau/default/GLOBAL_WEBMERCATOR/{z}/{y}/{x}.png', {
+            attribution: 'Basemap: <a href="https://www.bkg.bund.de">BKG</a> <a href="http://www.govdata.de/dl-de/by-2-0">dl-de/by-2-0</a>'
+        }).addTo(map);
+        var mapUrl = "tiles/{z}/{x}/{y}.pbf";
+        const cmap = {
+            '60': '#004D32',
+            '120': '#006837',
+            '180': '#238443',
+            '240': '#41ab5d',
+            '300': '#78c679',
+            '360': '#addd8e',
+            '420': '#d9f0a3',
+            '480': '#f7fcb9',
+            '540': '#fdd49e',
+            '600': '#ffaa00'
+        };
+        var vectorTileStyling = {
+            water_wells_isochrones_slices: function(properties, zoom) {
+                var weight = 0;
+                if (zoom > 12) {
+                    weight = 0;
+                }
+                var colorKey = properties.time >= 600 ? '600' : properties.time.toString();
+                return {
+                    fill: true,
+                    color: "#ffffff",
+                    fillColor: cmap[colorKey],
+                    fillOpacity: 0.7,
+                    opacity: 0.1,
+                };
+            }
+        };
+        var mapVectorTileOptions = {
+            rendererFactory: L.canvas.tile,
+            interactive: true,
+            attribution: 'Overlay: <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>  | <a href="https://github.com/Ossssip/Berlin-water-wells-map">github.com/Ossssip</a>',
+            maxNativeZoom: 18,
+            minZoom: 11,
+            vectorTileLayerStyles: vectorTileStyling,
+        };
+        function getTimePopupContent(time) {
+            if (time && !isNaN(time)) {
+                var minutes = time / 60;
+                return 'Walking distance: ' + minutes + ' min' + (minutes !== 1 ? 's' : '');
+            } else {
+                return 'No time information';
+            }
+        }
+        var mapPbfLayer = new L.VectorGrid.Protobuf(mapUrl, mapVectorTileOptions).on('click', function (e) {
+            L.popup().setContent(getTimePopupContent(e.layer.properties.time)).setLatLng(e.latlng).openOn(map);
+        }).addTo(map);
+        const search = new GeoSearch.GeoSearchControl({
+            provider: new GeoSearch.OpenStreetMapProvider({
+                params: {
+                    email: 'flexible-demeanour@runbox.com',
+                    viewbox: '13.0884,52.3383,13.7612,52.6755',
+                    bounded: 1,
+                },
+            }),
+            style: 'bar'
+        });
+        map.addControl(search);
+        var geojsonUrl = "osm_wells.json";
+        fetch(geojsonUrl).then(response => response.json()).then(geojsonData => {
+            geoJsonLayer = L.geoJSON(geojsonData, {
+                pointToLayer: function(feature, latlng) {
+                    return L.circleMarker(latlng, {
+                        radius: getRadius(map.getZoom()),
+                        fillColor: "#4D9DE0",
+                        color: "#0000FF",
+                        weight: 2,
+                        opacity: 1,
+                        fillOpacity: 0.8
+                    }).bindPopup("<a href='https://www.openstreetmap.org/node/" + feature.properties.id + "' target='_blank'>Water well/pump on OSM</a>");
+                }
+            }).addTo(map);
+        });
+        function getRadius(zoom) {
+            if (zoom <= 12) {
+                return 1;
+            } else if (zoom <= 14) {
+                return 3;
+            } else if (zoom <= 16) {
+                return 6;
+            } else if (zoom <= 18) {
+                return 8;
+            } else {
+                return 0;
+            }
+        }
+        map.on('zoomend', function() {
+            geoJsonLayer.eachLayer(function(layer) {
+                if (layer instanceof L.CircleMarker) {
+                    layer.setRadius(getRadius(map.getZoom()));
+                }
+            });
+        });
+        var legend = L.control({position: 'bottomright'});
+        legend.onAdd = function (map) {
+            var div = L.DomUtil.create('div', 'info legend');
+            div.style.backgroundColor = 'rgba(215, 215, 215, 0.8)';
+            div.style.padding = '10px';
+            div.style.borderRadius = '5px';
+            div.innerHTML += '<div><svg height="24" width="24" style="vertical-align: middle; margin-right: 5px;"><circle cx="12" cy="12" r="5" stroke="#0000FF" stroke-width="2" fill="#4D9DE0" /></svg><span style="vertical-align: middle;">Water Pump</span></div>';
+            div.innerHTML += '<h4>Walking Time<br>to Nearest Pump</h4>';
+            const times = ['1 min', '2 mins', '3 mins', '4 mins', '5 mins', '6 mins', '7 mins', '8 mins', '9 mins', '10+ mins'];
+            for (let i = 0; i < times.length; i++) {
+                const colorKey = (i + 1) * 60;
+                const color = cmap[colorKey] || '#ffcc99';
+                div.innerHTML += '<i style="background:' + color + ';">&nbsp;&nbsp;&nbsp;&nbsp;</i> ' + times[i] + '<br>';
+            }
+            return div;
+        };
+        legend.addTo(map);
+    </script>
+</body>
+</html>
