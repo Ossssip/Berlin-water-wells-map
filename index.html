@@ -70,7 +70,7 @@
             This map displays the locations of approximately 2,000 water pumps, part of the <a href="https://www.berlin.de/umwelt/themen/wasser/artikel.155619.php" target="_blank">Berlin Street Water Pump network</a> and a few additional drinking water wells marked on OpenStreetMap [1]. These sources are not connected to the central water supply system and serve as an emergency water provision.
             Isochrones have been mapped for each water source to visualize the areas reachable within a given walking time.
             <h2>Population Analysis</h2>
-            To assess the proximity of Berlin's population to these water sources, two datasets were utilized: Berlin Einwohnerdichte [2] and GHS_POP R2023A [3].
+            To assess the proximity of Berlin's population to these water sources, two datasets were utilized: the Berliner Einwohnerdichte [2] and GHS_POP [3].
             <a href="img/Pop_vs_proximity.png" target="_blank">
                 <img src="img/Pop_vs_proximity.png" alt="Berlin Population Proximity to Water Pumps" width="100%" />
             </a>
@@ -139,7 +139,7 @@
         function getTimePopupContent(time) {
             if (time && !isNaN(time)) {
                 var minutes = time / 60;
-                return 'Walking distance: ' + minutes + ' min' + (minutes !== 1 ? 's' : '');
+                return 'Nearest pump walk time: ' + minutes + ' min' + (minutes !== 1 ? 's' : '');
             } else {
                 return 'No time information';
             }
@@ -200,7 +200,7 @@
             div.style.padding = '10px';
             div.style.borderRadius = '5px';
             div.innerHTML += '<div><svg height="24" width="24" style="vertical-align: middle; margin-right: 5px;"><circle cx="12" cy="12" r="5" stroke="#0000FF" stroke-width="2" fill="#4D9DE0" /></svg><span style="vertical-align: middle;">Water Pump</span></div>';
-            div.innerHTML += '<h4>Walking Time<br>to Nearest Pump</h4>';
+            div.innerHTML += '<h4>Nearest Pump<br>Walk Time</h4>';
             const times = ['1 min', '2 mins', '3 mins', '4 mins', '5 mins', '6 mins', '7 mins', '8 mins', '9 mins', '10+ mins'];
             for (let i = 0; i < times.length; i++) {
                 const colorKey = (i + 1) * 60;
